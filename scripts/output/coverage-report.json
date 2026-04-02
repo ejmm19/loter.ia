@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-04-02T20:10:18.377Z",
+  "source": "datos.gov.co SODA API — dataset i3kx-3zps",
+  "totalDrawsInserted": 2608,
+  "lotteries": {
+    "Lotería del Quindío": {
+      "count": 183,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería de Manizales": {
+      "count": 185,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería de Bogotá": {
+      "count": 187,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería del Meta": {
+      "count": 182,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería de Medellín": {
+      "count": 182,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería de Boyacá": {
+      "count": 187,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería de Santander": {
+      "count": 182,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería del Cauca": {
+      "count": 181,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería del Risaralda": {
+      "count": 179,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería de Cundinamarca": {
+      "count": 183,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-12"
+    },
+    "Lotería del Huila": {
+      "count": 184,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-13"
+    },
+    "Cruz Roja": {
+      "count": 186,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-13"
+    },
+    "Lotería del Valle": {
+      "count": 184,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-18"
+    },
+    "Lotería del Tolima": {
+      "count": 183,
+      "minDate": "2020-01-08",
+      "maxDate": "2023-09-12"
+    },
+    "Extra de Colombia": {
+      "count": 40,
+      "minDate": "2020-02-03",
+      "maxDate": "2023-08-29"
+    }
+  },
+  "notAvailableInSource": [
+    {
+      "name": "Baloto",
+      "reason": "Not in datos.gov.co dataset. Available on Kaggle (jaforero/baloto-colombia) or via web scraping from baloto.com. Requires manual download."
+    },
+    {
+      "name": "Baloto Revancha",
+      "reason": "Not in datos.gov.co dataset. Same source as Baloto (same draw event, secondary prize pool). Requires Kaggle download or web scraping."
+    }
+  ]
+}
