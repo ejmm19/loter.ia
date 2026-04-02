@@ -6,19 +6,17 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "loter-ia-db"
-database_id = "YOUR_D1_DATABASE_ID"
+database_id = "e23960be-21f1-4b15-8d9c-124f2fb85377"
 
 [vars]
 ENVIRONMENT = "production"
 APP_URL = "https://loter-ia.pages.dev"
 FROM_EMAIL = "noreply@loter.ia"
 
-# Cron Triggers — Phase 2a data ingestion + Phase 3 email notifications
+# Cron Triggers — daily lottery data ingestion (Colombia)
 # 06:00 UTC: ingest new draw results
-# 08:00 UTC: send draw-results and prediction-hit emails (after 06:00 ingestion)
-# 22:00 UTC: ingest late LatAm draws
 [triggers]
-crons = ["0 6 * * *", "0 8 * * *", "0 22 * * *"]
+crons = ["0 6 * * *"]
 
 # Secrets (set via: wrangler secret put <SECRET_NAME>):
 # OPENAI_API_KEY          — OpenAI API key for AI predictions

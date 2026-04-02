@@ -20,7 +20,7 @@
         <label class="text-xs text-gray-400 font-medium">Lotería</label>
         <select
           [value]="selectedId()"
-          (change)="onLotteryChange(($event.target as HTMLSelectElement).value)"
+          (change)="onLotteryChange($any($event.target).value)"
           class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           @for (l of lotteries(); track l.id) {

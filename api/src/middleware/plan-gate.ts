@@ -18,7 +18,7 @@ const FREE_DAILY_LIMIT = 3;
 export async function planGate(
   c: Context<{ Bindings: Env; Variables: { user?: JwtPayload } }>,
   next: Next
-): Promise<Response> {
+): Promise<Response | void> {
   // Anonymous requests are never limited here (handled at caller)
   const user = c.get('user');
   if (!user) {
@@ -57,7 +57,7 @@ export async function planGate(
         resetAt: `${today}T23:59:59Z`,
       },
       429
-    ) as unknown as Response;
+    );
   }
 
   // Increment counter (upsert)

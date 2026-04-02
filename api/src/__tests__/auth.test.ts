@@ -182,7 +182,7 @@ describe('POST /api/auth/login', () => {
     const body = await res.json() as { accessToken: string };
     // JWT is base64url — decode payload
     const parts = body.accessToken.split('.');
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
     expect(payload.sub).toBe('99');
     expect(payload.email).toBe('jwt@example.com');
     expect(payload.exp).toBeGreaterThan(Date.now() / 1000);
@@ -325,7 +325,7 @@ describe('JWT security', () => {
       { sub: '1', email: 'test@example.com', role: 'user', type: 'access' },
       JWT_SECRET,
     );
-    const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
+    const header = JSON.parse(atob(token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/')));
     expect(header.alg).toBe('HS256');
   });
 

@@ -78,7 +78,7 @@ beforeEach(() => {
   mockDB.prepare.mockReturnThis();
   mockDB.bind.mockReturnThis();
   vi.mocked(generateStatisticalPrediction).mockReturnValue(mockStatisticalResult);
-  vi.mocked(getOpenAIPrediction).mockResolvedValue(null);
+  vi.mocked(getOpenAIPrediction).mockRejectedValue(new Error('AI unavailable'));
 });
 
 // ─── POST /api/predictions ────────────────────────────────────────────────────
