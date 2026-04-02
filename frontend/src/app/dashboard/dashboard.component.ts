@@ -19,10 +19,11 @@ type Tab = 'history' | 'favorites' | 'stats';
         <div class="flex items-center justify-between mb-8">
           <div>
             <h1 class="text-3xl font-bold text-white">Mi Dashboard</h1>
-            <p class="text-purple-300 mt-1">Bienvenido, {{ auth.user()?.name }}</p>
+            <p data-testid="user-greeting" class="text-purple-300 mt-1">Bienvenido, {{ auth.user()?.name }}</p>
           </div>
           <div class="flex items-center gap-3">
             <span
+              data-testid="plan-badge"
               class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
               [class]="subscription()?.plan === 'pro'
                 ? 'bg-purple-500 text-white'
@@ -88,15 +89,15 @@ type Tab = 'history' | 'favorites' | 'stats';
           } @else if (history().length === 0) {
             <div class="text-center text-purple-400 py-12">
               <p class="text-lg">No hay predicciones todavía.</p>
-              <a routerLink="/predictions"
+              <a data-testid="predict-button" routerLink="/predictions"
                  class="mt-4 inline-block px-6 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold transition-colors">
                 Generar mi primera predicción
               </a>
             </div>
           } @else {
-            <div class="space-y-3">
+            <div data-testid="lottery-list" class="space-y-3">
               @for (item of history(); track item.id) {
-                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                <div data-testid="lottery-item" class="bg-white/5 rounded-xl p-4 border border-white/10">
                   <div class="flex items-start justify-between gap-4">
                     <div>
                       <span class="text-purple-300 text-xs">{{ item.lotteryName }}</span>

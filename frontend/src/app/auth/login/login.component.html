@@ -12,7 +12,7 @@
       <h1 class="text-2xl font-bold text-gray-900 mb-6">Iniciar sesión</h1>
 
       @if (error()) {
-        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+        <div data-testid="error-message" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
           {{ error() }}
         </div>
       }
@@ -22,6 +22,7 @@
           <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
           <input
             id="email"
+            data-testid="email-input"
             type="email"
             name="email"
             [(ngModel)]="email"
@@ -36,6 +37,7 @@
           <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
           <input
             id="password"
+            data-testid="password-input"
             type="password"
             name="password"
             [(ngModel)]="password"
@@ -48,6 +50,7 @@
 
         <button
           type="submit"
+          data-testid="login-submit"
           [disabled]="loading() || !email || !password"
           class="btn-primary w-full mt-2"
         >

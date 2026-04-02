@@ -42,6 +42,7 @@ const PRO_PRICE_ID = 'price_YOUR_PRO_MONTHLY_PRICE_ID';
         <div class="grid md:grid-cols-2 gap-8">
           @for (plan of plans(); track plan.id) {
             <div
+              [attr.data-testid]="plan.id === 'pro' ? 'plan-pro' : 'plan-free'"
               class="rounded-2xl p-8 border-2 transition-all"
               [class]="plan.id === 'pro'
                 ? 'bg-gradient-to-br from-purple-700/50 to-indigo-700/50 border-purple-400 shadow-xl shadow-purple-900/50'
@@ -97,6 +98,7 @@ const PRO_PRICE_ID = 'price_YOUR_PRO_MONTHLY_PRICE_ID';
                   </a>
                 } @else {
                   <button
+                    data-testid="upgrade-to-pro"
                     (click)="subscribePro()"
                     [disabled]="loading()"
                     class="w-full py-3 rounded-xl font-semibold bg-purple-500 hover:bg-purple-400
