@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "test:unit:frontend": "cd frontend && ng test --watch=false --browsers=ChromeHeadless",
+    "test:unit:api": "cd api && npm test",
+    "test:e2e": "npx playwright test",
+    "test:all": "npm run test:unit:frontend && npm run test:unit:api && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "autoprefixer": "^10.4.27",
+    "playwright": "^1.59.1",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2"
+  }
+}
