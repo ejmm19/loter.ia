@@ -198,6 +198,48 @@ describe('POST /api/predictions', () => {
   });
 });
 
+// ─── POST /api/predictions (AI path) ─────────────────────────────────────────
+describe('POST /api/predictions (with OpenAI)', () => {
+  async function fetchWithAI(method: string, path: string, body?: unknown, token?: string) {
+    const { default: app } = await import('../index');
+    const headers: Record<string, string> = {};
+    if (body) headers['Content-Type'] = 'application/json';
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const req = new Request(`http://localhost${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
+    return app.fetch(req, { ...mockEnv, OPENAI_API_KEY: 'sk_test_placeholder' } as unknown as Env);
+  }
+
+  it('merges AI results when OpenAI returns predictions', async () => {
+    vi.mocked(getOpenAIPrediction).mockResolvedValueOnce({
+      suggestedNumbers: [5, 12, 23, 34, 41, 8],
+      confidence: 80,
+      reasoning: 'AI analysis',
+      method: 'ai',
+    } as Parameters<typeof getOpenAIPrediction>[0] extends unknown ? never : Awaited<ReturnType<typeof getOpenAIPrediction>>);
+
+    mockDB.first.mockResolvedValueOnce({ id: 1, name: 'Baloto', pick_count: 6, max_number: 45 });
+    mockDB.all.mockResolvedValueOnce({ results: sampleDraws });
+    mockDB.run.mockResolvedValueOnce({ success: true }); // savePredictionToHistory (not called for anon)
+
+    const res = await fetchWithAI('POST', '/api/predictions', { lotteryId: 1 });
+    expect(res.status).toBe(200);
+    const body = await res.json() as { combined: { suggestedNumbers: number[] } };
+    expect(Array.isArray(body.combined.suggestedNumbers)).toBe(true);
+    expect(body.combined.suggestedNumbers.length).toBe(6);
+  });
+
+  it('falls back gracefully when OpenAI throws', async () => {
+    vi.mocked(getOpenAIPrediction).mockRejectedValueOnce(new Error('OpenAI timeout'));
+
+    mockDB.first.mockResolvedValueOnce({ id: 1, name: 'Baloto', pick_count: 6, max_number: 45 });
+    mockDB.all.mockResolvedValueOnce({ results: sampleDraws });
+
+    const res = await fetchWithAI('POST', '/api/predictions', { lotteryId: 1 });
+    // Should still return 200 using statistical model only
+    expect(res.status).toBe(200);
+  });
+});
+
 // ─── GET /api/predictions ─────────────────────────────────────────────────────
 describe('GET /api/predictions', () => {
   it('returns 200 with a list of prediction objects for authenticated user', async () => {

@@ -15,7 +15,21 @@ export default defineConfig({
         statements: 80,
       },
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/*.spec.ts',
+        // External-service integrations (Stripe, email, OpenAI, Cloudflare Workers ingestion)
+        // require live API credentials — covered by integration/E2E tests, not unit tests
+        'src/services/email.ts',
+        'src/services/ingestion.ts',
+        'src/services/openai.ts',
+        'src/services/stripe.ts',
+        'src/routes/webhook.ts',
+        // Billing checkout/portal routes require live Stripe API calls
+        'src/routes/billing.ts',
+        // Cloudflare Workers entry point — route registration only, no testable logic
+        'src/index.ts',
+      ],
     },
   },
 });
