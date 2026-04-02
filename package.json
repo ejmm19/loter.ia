@@ -8,6 +8,7 @@
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/postcss": "^4.2.2",
     "autoprefixer": "^10.4.27",
     "playwright": "^1.59.1",
     "postcss": "^8.5.8",

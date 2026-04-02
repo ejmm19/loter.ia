@@ -1,0 +1,40 @@
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink, Router } from '@angular/router';
+import { AuthService } from '../auth.service';
+
+@Component({
+  selector: 'app-register',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
+  templateUrl: './register.component.html',
+})
+export class RegisterComponent {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  name = '';
+  email = '';
+  password = '';
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+
+  submit(): void {
+    if (!this.name || !this.email || !this.password) return;
+    if (this.password.length < 8) {
+      this.error.set('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.auth.register(this.email, this.password, this.name).subscribe({
+      next: () => this.router.navigate(['/predictions']),
+      error: (err) => {
+        this.error.set(err?.error?.error ?? 'Error al registrarse.');
+        this.loading.set(false);
+      },
+    });
+  }
+}

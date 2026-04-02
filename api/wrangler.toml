@@ -1,0 +1,16 @@
+name = "loter-ia-api"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "loter-ia-db"
+database_id = "YOUR_D1_DATABASE_ID"
+
+[vars]
+ENVIRONMENT = "production"
+
+# Secrets (set via wrangler secret put):
+# OPENAI_API_KEY
+# JWT_SECRET

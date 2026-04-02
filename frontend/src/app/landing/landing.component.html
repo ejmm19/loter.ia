@@ -1,0 +1,143 @@
+<!-- Navigation -->
+<nav class="bg-white border-b border-gray-100 sticky top-0 z-50">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <a routerLink="/" class="text-2xl font-extrabold text-brand-700 tracking-tight">
+      loter<span class="text-accent-500">.ia</span>
+    </a>
+    <div class="flex items-center gap-3">
+      @if (isLoggedIn()) {
+        <a routerLink="/predictions" class="btn-primary text-sm px-4 py-2">Mis predicciones</a>
+      } @else {
+        <a routerLink="/login" class="btn-secondary text-sm px-4 py-2">Iniciar sesión</a>
+        <a routerLink="/register" class="btn-primary text-sm px-4 py-2">Empezar gratis</a>
+      }
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="bg-gradient-to-br from-brand-900 via-brand-800 to-accent-600 text-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+    <div class="max-w-3xl">
+      <div class="inline-flex items-center gap-2 bg-white/10 text-white text-sm font-medium px-3 py-1 rounded-full mb-6">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        Análisis estadístico + IA en tiempo real
+      </div>
+      <h1 class="text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
+        Predicciones de lotería<br/>
+        <span class="text-accent-400">potenciadas por IA</span>
+      </h1>
+      <p class="text-xl text-brand-100 mb-10 leading-relaxed">
+        Analizamos miles de sorteos históricos con estadística avanzada e inteligencia artificial
+        para identificar patrones y generar predicciones para EuroMillones, La Primitiva, Bonoloto y más.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4">
+        <a routerLink="/register" class="inline-flex items-center justify-center px-8 py-4 bg-white text-brand-700 font-bold rounded-xl hover:bg-brand-50 transition-colors text-lg">
+          Empezar gratis
+          <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12"/>
+          </svg>
+        </a>
+        <a routerLink="/predictions" class="inline-flex items-center justify-center px-8 py-4 border-2 border-white/40 text-white font-semibold rounded-xl hover:border-white transition-colors text-lg">
+          Ver predicciones
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Lotteries Section -->
+<section class="bg-white py-16">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <p class="text-center text-sm font-semibold text-gray-500 uppercase tracking-wider mb-8">Loterías disponibles</p>
+    <div class="flex flex-wrap justify-center gap-4">
+      @for (lottery of ['EuroMillones', 'La Primitiva', 'Bonoloto', 'El Gordo', 'EuroDreams', 'Powerball', 'Mega Millions']; track lottery) {
+        <span class="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">{{ lottery }}</span>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="bg-gray-50 py-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">¿Cómo funciona loter.ia?</h2>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        Combinamos dos enfoques complementarios para maximizar la calidad del análisis.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Feature 1 -->
+      <div class="card hover:shadow-md transition-shadow">
+        <div class="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Análisis estadístico</h3>
+        <p class="text-gray-600">
+          Calculamos frecuencias ponderadas, promedios móviles, números calientes y fríos usando cientos de sorteos históricos.
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="card hover:shadow-md transition-shadow">
+        <div class="w-12 h-12 bg-accent-100 rounded-xl flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Inteligencia Artificial</h3>
+        <p class="text-gray-600">
+          GPT-4o analiza patrones cíclicos y tendencias que los métodos estadísticos tradicionales no detectan fácilmente.
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="card hover:shadow-md transition-shadow">
+        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Resultados combinados</h3>
+        <p class="text-gray-600">
+          Fusionamos ambos análisis para darte una lista de números con puntuación de confianza y explicación detallada.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section with Registration Form -->
+<section class="bg-gradient-to-r from-brand-700 to-accent-600 py-20">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h2 class="text-3xl lg:text-4xl font-bold text-white mb-4">
+      Empieza a analizar tus loterías favoritas
+    </h2>
+    <p class="text-lg text-brand-100 mb-10">
+      Crea tu cuenta gratuita en segundos y accede a predicciones ilimitadas con historial personalizado.
+    </p>
+    <a routerLink="/register" class="inline-flex items-center justify-center px-10 py-4 bg-white text-brand-700 font-bold rounded-xl hover:bg-brand-50 transition-colors text-lg shadow-xl">
+      Crear cuenta gratuita
+      <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12"/>
+      </svg>
+    </a>
+    <p class="mt-4 text-brand-200 text-sm">Sin tarjeta de crédito. Sin compromisos.</p>
+  </div>
+</section>
+
+<!-- Disclaimer -->
+<footer class="bg-gray-900 text-gray-400 py-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <p class="text-sm">
+      <strong class="text-gray-300">Aviso legal:</strong> loter.ia es una herramienta de análisis estadístico y educativo.
+      Las predicciones no garantizan ningún resultado. Las loterías son juegos de azar.
+      Juega responsablemente. +18.
+    </p>
+    <p class="mt-3 text-xs">© 2026 loter.ia · Todos los derechos reservados</p>
+  </div>
+</footer>

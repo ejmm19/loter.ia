@@ -1,24 +1,27 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import {
   PredictionsService,
   PredictionResult,
   PredictionHistory,
   Lottery,
 } from './predictions.service';
+import { AuthService } from '../auth/auth.service';
 
 type Tab = 'generate' | 'history';
 
 @Component({
   selector: 'app-predictions',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './predictions.component.html',
   styleUrl: './predictions.component.css',
 })
 export class PredictionsComponent implements OnInit {
   private readonly svc = inject(PredictionsService);
+  readonly auth = inject(AuthService);
 
   // State
   readonly lotteries = signal<Lottery[]>([]);

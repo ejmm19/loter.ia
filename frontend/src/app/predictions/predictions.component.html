@@ -1,9 +1,22 @@
+<!-- Nav -->
+<nav class="bg-white border-b border-gray-100 sticky top-0 z-50">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <a routerLink="/" class="text-2xl font-extrabold text-brand-700 tracking-tight">
+      loter<span class="text-accent-500">.ia</span>
+    </a>
+    <div class="flex items-center gap-4">
+      <span class="text-sm text-gray-600 hidden sm:inline">{{ auth.user()?.name }}</span>
+      <button (click)="auth.logout()" class="btn-secondary text-sm px-3 py-1.5">Salir</button>
+    </div>
+  </div>
+</nav>
+
 <div class="min-h-screen bg-gray-50 py-8 px-4">
   <div class="max-w-4xl mx-auto">
 
     <!-- Header -->
     <div class="mb-8 text-center">
-      <h1 class="text-3xl font-bold text-indigo-700">Motor de Predicción AI</h1>
+      <h1 class="text-3xl font-bold text-brand-700">Motor de Predicción IA</h1>
       <p class="mt-2 text-gray-500">Análisis estadístico + inteligencia artificial para ayudarte a elegir números</p>
     </div>
 
@@ -230,3 +243,4 @@
 
   </div>
 </div>
+

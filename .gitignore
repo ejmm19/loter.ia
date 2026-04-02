@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.cache/
+.angular/
+
+# Cloudflare
+.wrangler/
+worker-configuration.d.ts
+
+# Environment
+.env
+.env.local
+.dev.vars
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Test
+/coverage
+/test-results/
+/playwright-report/
