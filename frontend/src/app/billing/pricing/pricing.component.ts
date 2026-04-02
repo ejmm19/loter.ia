@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Title, Meta } from '@angular/platform-browser';
 import { BillingService, Plan, SubscriptionStatus } from '../billing.service';
 import { AuthService } from '../../auth/auth.service';
 
@@ -59,7 +60,7 @@ const PRO_PRICE_ID = 'price_YOUR_PRO_MONTHLY_PRICE_ID';
                   <span class="text-4xl font-bold text-white">Gratis</span>
                 } @else {
                   <span class="text-4xl font-bold text-white">
-                    ${{ (plan.price / 100).toFixed(2) }}
+                    \${{ (plan.price / 100).toFixed(2) }}
                   </span>
                   <span class="text-purple-300 ml-1">USD / mes</span>
                 }
@@ -135,6 +136,8 @@ const PRO_PRICE_ID = 'price_YOUR_PRO_MONTHLY_PRICE_ID';
 export class PricingComponent implements OnInit {
   readonly auth = inject(AuthService);
   private readonly billing = inject(BillingService);
+  private readonly titleService = inject(Title);
+  private readonly metaService = inject(Meta);
 
   readonly plans = signal<Plan[]>([]);
   readonly currentPlan = signal<'free' | 'pro'>('free');
@@ -143,6 +146,9 @@ export class PricingComponent implements OnInit {
   readonly showSuccess = signal(false);
 
   ngOnInit(): void {
+    this.titleService.setTitle('Planes y precios — loter.ia');
+    this.metaService.updateTag({ name: 'description', content: 'Elige el plan que mejor se adapte: acceso gratuito o Pro con predicciones ilimitadas y notificaciones.' });
+
     // Check for Stripe success redirect
     if (window.location.search.includes('checkout=success')) {
       this.showSuccess.set(true);

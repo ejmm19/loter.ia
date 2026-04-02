@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { Title, Meta } from '@angular/platform-browser';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -10,15 +11,22 @@ import { AuthService } from '../auth.service';
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './login.component.html',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly titleService = inject(Title);
+  private readonly metaService = inject(Meta);
 
   email = '';
   password = '';
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.titleService.setTitle('Iniciar sesión — loter.ia');
+    this.metaService.updateTag({ name: 'description', content: 'Accede a tu cuenta de loter.ia y consulta tus predicciones personalizadas.' });
+  }
 
   submit(): void {
     if (!this.email || !this.password) return;
