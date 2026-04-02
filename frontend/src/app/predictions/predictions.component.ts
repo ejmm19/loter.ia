@@ -9,6 +9,8 @@ import {
   Lottery,
 } from './predictions.service';
 import { AuthService } from '../auth/auth.service';
+import { UserService } from '../dashboard/user.service';
+import { BillingService, SubscriptionStatus } from '../billing/billing.service';
 
 type Tab = 'generate' | 'history';
 
@@ -21,6 +23,8 @@ type Tab = 'generate' | 'history';
 })
 export class PredictionsComponent implements OnInit {
   private readonly svc = inject(PredictionsService);
+  private readonly userSvc = inject(UserService);
+  private readonly billingSvc = inject(BillingService);
   readonly auth = inject(AuthService);
 
   // State
@@ -32,6 +36,9 @@ export class PredictionsComponent implements OnInit {
   readonly result = signal<PredictionResult | null>(null);
   readonly history = signal<PredictionHistory[]>([]);
   readonly activeTab = signal<Tab>('generate');
+  readonly saveSuccess = signal(false);
+  readonly savePending = signal(false);
+  readonly subscription = signal<SubscriptionStatus | null>(null);
 
   readonly selectedLottery = computed(() =>
     this.lotteries().find((l) => l.id === this.selectedLotteryId()) ?? null
@@ -45,6 +52,13 @@ export class PredictionsComponent implements OnInit {
       },
       error: () => this.error.set('No se pudieron cargar las loterías.'),
     });
+
+    if (this.auth.isLoggedIn()) {
+      this.billingSvc.getSubscription().subscribe({
+        next: (sub) => this.subscription.set(sub),
+        error: () => {},
+      });
+    }
   }
 
   generate(): void {
@@ -81,6 +95,21 @@ export class PredictionsComponent implements OnInit {
 
   trendIcon(trend: 'hot' | 'cold' | 'neutral'): string {
     return trend === 'hot' ? '🔥' : trend === 'cold' ? '🧊' : '—';
+  }
+
+  savePrediction(): void {
+    const res = this.result();
+    const lotteryId = this.selectedLotteryId();
+    if (!res || !lotteryId) return;
+    this.savePending.set(true);
+    this.userSvc.saveFavorite(lotteryId, res.combined.suggestedNumbers).subscribe({
+      next: () => {
+        this.savePending.set(false);
+        this.saveSuccess.set(true);
+        setTimeout(() => this.saveSuccess.set(false), 3000);
+      },
+      error: () => this.savePending.set(false),
+    });
   }
 
   confidenceColor(score: number): string {
