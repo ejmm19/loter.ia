@@ -7,7 +7,7 @@
  */
 
 import { Hono } from 'hono';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, optionalAuth } from '../middleware/auth';
 import { planGate } from '../middleware/plan-gate';
 import { JwtPayload } from '../services/auth';
 import { generateStatisticalPrediction, DrawResult } from '../services/statistics';
@@ -197,7 +197,7 @@ function mergeNumberSets(
 }
 
 // POST /api/predictions
-predictionsRouter.post('/', planGate, async (c) => {
+predictionsRouter.post('/', optionalAuth, planGate, async (c) => {
   let body: PredictionRequest;
   try {
     body = await c.req.json<PredictionRequest>();
