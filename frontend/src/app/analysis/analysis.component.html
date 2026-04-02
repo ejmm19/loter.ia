@@ -1,0 +1,311 @@
+<div class="min-h-screen bg-gray-950 text-gray-100">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <a routerLink="/" class="text-gray-400 hover:text-white text-sm">← Inicio</a>
+      <span class="text-gray-600">|</span>
+      <h1 class="text-lg font-semibold text-white">Análisis estadístico</h1>
+    </div>
+    <a routerLink="/predictions" class="text-sm text-indigo-400 hover:text-indigo-300">Predicciones →</a>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- ── Filters ───────────────────────────────────────────────────────── -->
+    <section class="bg-gray-900 rounded-xl p-4 flex flex-wrap gap-4 items-end">
+
+      <!-- Lottery selector -->
+      <div class="flex flex-col gap-1 min-w-48">
+        <label class="text-xs text-gray-400 font-medium">Lotería</label>
+        <select
+          [value]="selectedId()"
+          (change)="onLotteryChange(($event.target as HTMLSelectElement).value)"
+          class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          @for (l of lotteries(); track l.id) {
+            <option [value]="l.id">{{ l.name }} ({{ l.country }})</option>
+          }
+        </select>
+      </div>
+
+      <!-- Date from -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-gray-400 font-medium">Desde</label>
+        <input
+          type="date"
+          [ngModel]="fromDate()"
+          (ngModelChange)="fromDate.set($event)"
+          class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <!-- Date to -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-gray-400 font-medium">Hasta</label>
+        <input
+          type="date"
+          [ngModel]="toDate()"
+          (ngModelChange)="toDate.set($event)"
+          class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <!-- Recent N (for hot/cold) -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-gray-400 font-medium">Últimos N sorteos (caliente/fría)</label>
+        <input
+          type="number"
+          min="5" max="100"
+          [ngModel]="recentN()"
+          (ngModelChange)="recentN.set(+$event)"
+          class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm w-24 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <button
+        (click)="onFilterApply()"
+        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-medium transition-colors"
+      >
+        Aplicar
+      </button>
+    </section>
+
+    <!-- ── Loading / Error ───────────────────────────────────────────────── -->
+    @if (loading()) {
+      <div class="text-center py-12 text-gray-400 animate-pulse">Cargando datos…</div>
+    }
+    @if (error()) {
+      <div class="bg-red-900/40 border border-red-700 rounded-xl p-4 text-red-300 text-sm">
+        {{ error() }}
+      </div>
+    }
+
+    @if (!loading()) {
+
+      <!-- ── Tabs ─────────────────────────────────────────────────────────── -->
+      <div class="flex gap-1 border-b border-gray-800">
+        @for (tab of tabs; track tab.id) {
+          <button
+            (click)="onTabChange(tab.id)"
+            [class]="activeTab() === tab.id
+              ? 'px-4 py-2 text-sm font-medium text-indigo-400 border-b-2 border-indigo-500 -mb-px'
+              : 'px-4 py-2 text-sm text-gray-400 hover:text-gray-200'"
+          >
+            {{ tab.label }}
+          </button>
+        }
+      </div>
+
+      <!-- ── Tab: Frecuencia ───────────────────────────────────────────────── -->
+      @if (activeTab() === 'frequency') {
+        <section class="bg-gray-900 rounded-xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-semibold text-white">Frecuencia de números</h2>
+            <span class="text-xs text-gray-400">{{ totalDrawsFreq() }} sorteos analizados</span>
+          </div>
+
+          @if (frequency().length === 0) {
+            <p class="text-gray-500 text-sm text-center py-8">Sin datos para este período</p>
+          } @else {
+            <div class="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+              @for (entry of frequency(); track entry.number) {
+                <div class="flex items-center gap-3">
+                  <span class="w-10 text-right text-sm font-mono text-gray-300 shrink-0">{{ entry.number }}</span>
+                  <div class="flex-1 bg-gray-800 rounded-full h-5 overflow-hidden">
+                    <div
+                      class="h-full bg-indigo-500 rounded-full transition-all duration-300"
+                      [style.width]="barWidth(entry.count)"
+                    ></div>
+                  </div>
+                  <span class="w-16 text-right text-xs text-gray-400 shrink-0">
+                    {{ entry.count }}× ({{ entry.percentage }}%)
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      <!-- ── Tab: Caliente / Fría ──────────────────────────────────────────── -->
+      @if (activeTab() === 'hotcold') {
+        <section class="grid md:grid-cols-2 gap-4">
+
+          <!-- Hot -->
+          <div class="bg-gray-900 rounded-xl p-5">
+            <h2 class="font-semibold text-white mb-1">🔥 Números calientes</h2>
+            <p class="text-xs text-gray-500 mb-4">
+              Aparecen más en los últimos {{ recentN() }} sorteos vs. histórico
+            </p>
+            @if (hot().length === 0) {
+              <p class="text-gray-500 text-sm">Sin datos</p>
+            } @else {
+              <div class="flex flex-wrap gap-2">
+                @for (e of hot(); track e.number) {
+                  <div class="flex flex-col items-center bg-orange-900/30 border border-orange-700/40 rounded-lg px-3 py-2">
+                    <span class="text-lg font-bold text-orange-300">{{ e.number }}</span>
+                    <span class="text-xs text-orange-400/70">{{ e.recentRate }}% rec.</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Cold -->
+          <div class="bg-gray-900 rounded-xl p-5">
+            <h2 class="font-semibold text-white mb-1">🧊 Números fríos</h2>
+            <p class="text-xs text-gray-500 mb-4">
+              Aparecen menos en los últimos {{ recentN() }} sorteos vs. histórico
+            </p>
+            @if (cold().length === 0) {
+              <p class="text-gray-500 text-sm">Sin datos</p>
+            } @else {
+              <div class="flex flex-wrap gap-2">
+                @for (e of cold(); track e.number) {
+                  <div class="flex flex-col items-center bg-blue-900/30 border border-blue-700/40 rounded-lg px-3 py-2">
+                    <span class="text-lg font-bold text-blue-300">{{ e.number }}</span>
+                    <span class="text-xs text-blue-400/70">{{ e.recentRate }}% rec.</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Comparison table -->
+          @if (hot().length > 0 || cold().length > 0) {
+            <div class="md:col-span-2 bg-gray-900 rounded-xl p-5">
+              <h3 class="text-sm font-medium text-gray-300 mb-3">
+                Comparación ({{ totalDrawsHC() }} sorteos históricos / últimos {{ recentN() }})
+              </h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="text-left text-xs text-gray-500 border-b border-gray-800">
+                      <th class="pb-2 pr-4">Número</th>
+                      <th class="pb-2 pr-4">Frec. histórica</th>
+                      <th class="pb-2 pr-4">Frec. reciente</th>
+                      <th class="pb-2">Tendencia</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (e of hot(); track e.number) {
+                      <tr class="border-b border-gray-800/50 hover:bg-gray-800/30">
+                        <td class="py-2 pr-4 font-mono font-semibold text-orange-300">{{ e.number }}</td>
+                        <td class="py-2 pr-4 text-gray-400">{{ e.histRate }}%</td>
+                        <td class="py-2 pr-4 text-orange-300">{{ e.recentRate }}%</td>
+                        <td class="py-2 text-orange-400">🔥 +{{ (e.recentRate - e.histRate).toFixed(1) }}%</td>
+                      </tr>
+                    }
+                    @for (e of cold(); track e.number) {
+                      <tr class="border-b border-gray-800/50 hover:bg-gray-800/30">
+                        <td class="py-2 pr-4 font-mono font-semibold text-blue-300">{{ e.number }}</td>
+                        <td class="py-2 pr-4 text-gray-400">{{ e.histRate }}%</td>
+                        <td class="py-2 pr-4 text-blue-300">{{ e.recentRate }}%</td>
+                        <td class="py-2 text-blue-400">🧊 {{ (e.recentRate - e.histRate).toFixed(1) }}%</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+        </section>
+      }
+
+      <!-- ── Tab: Pares ────────────────────────────────────────────────────── -->
+      @if (activeTab() === 'pairs') {
+        <section class="grid md:grid-cols-2 gap-4">
+
+          <!-- Pairs -->
+          <div class="bg-gray-900 rounded-xl p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="font-semibold text-white">Pares frecuentes</h2>
+              <span class="text-xs text-gray-400">{{ totalDrawsPairs() }} sorteos</span>
+            </div>
+            @if (pairs().length === 0) {
+              <p class="text-gray-500 text-sm text-center py-8">Sin datos para este período</p>
+            } @else {
+              <div class="space-y-2 max-h-96 overflow-y-auto">
+                @for (p of pairs(); track p.numbers[0] + '_' + p.numbers[1]) {
+                  <div class="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
+                    <div class="flex gap-2">
+                      @for (n of p.numbers; track n) {
+                        <span class="w-8 h-8 flex items-center justify-center bg-indigo-700 rounded-full text-sm font-bold">{{ n }}</span>
+                      }
+                    </div>
+                    <span class="text-xs text-gray-400">{{ p.count }}× ({{ p.percentage }}%)</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Triplets -->
+          <div class="bg-gray-900 rounded-xl p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="font-semibold text-white">Tripletas frecuentes</h2>
+              <span class="text-xs text-gray-400">{{ totalDrawsPairs() }} sorteos</span>
+            </div>
+            @if (triplets().length === 0) {
+              <p class="text-gray-500 text-sm text-center py-8">Sin datos o lotería con pick_count &lt; 3</p>
+            } @else {
+              <div class="space-y-2 max-h-96 overflow-y-auto">
+                @for (t of triplets(); track t.numbers[0] + '_' + t.numbers[1] + '_' + t.numbers[2]) {
+                  <div class="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
+                    <div class="flex gap-2">
+                      @for (n of t.numbers; track n) {
+                        <span class="w-8 h-8 flex items-center justify-center bg-violet-700 rounded-full text-sm font-bold">{{ n }}</span>
+                      }
+                    </div>
+                    <span class="text-xs text-gray-400">{{ t.count }}× ({{ t.percentage }}%)</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ── Tab: Distribución ─────────────────────────────────────────────── -->
+      @if (activeTab() === 'distribution') {
+        <section class="bg-gray-900 rounded-xl p-5">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="font-semibold text-white">Distribución por posición</h2>
+            <span class="text-xs text-gray-400">{{ totalDrawsDist() }} sorteos · {{ pickCount() }} posiciones</span>
+          </div>
+
+          @if (positions().length === 0) {
+            <p class="text-gray-500 text-sm text-center py-8">Sin datos para este período</p>
+          } @else {
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              @for (pos of positions(); track pos.position) {
+                <div>
+                  <h3 class="text-xs font-semibold text-gray-400 uppercase mb-2 tracking-wide">
+                    Posición {{ pos.position }}
+                  </h3>
+                  <div class="space-y-1">
+                    @for (entry of pos.topNumbers; track entry.number) {
+                      <div class="flex items-center gap-2">
+                        <span class="w-8 text-right text-xs font-mono text-gray-300 shrink-0">{{ entry.number }}</span>
+                        <div class="flex-1 bg-gray-800 rounded-full h-3 overflow-hidden">
+                          <div
+                            class="h-full bg-teal-500 rounded-full"
+                            [style.width]="posBarWidth(entry.percentage, pos.topNumbers)"
+                          ></div>
+                        </div>
+                        <span class="w-10 text-right text-xs text-gray-500 shrink-0">{{ entry.percentage }}%</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+
+    }<!-- /!loading -->
+
+  </main>
+</div>

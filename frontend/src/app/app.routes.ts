@@ -21,6 +21,11 @@ export const routes: Routes = [
     loadComponent: () => import('./predictions/predictions.component').then(m => m.PredictionsComponent),
   },
   {
+    path: 'analysis',
+    canActivate: [authGuard],
+    loadComponent: () => import('./analysis/analysis.component').then(m => m.AnalysisComponent),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

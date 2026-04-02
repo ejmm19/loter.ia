@@ -10,7 +10,20 @@ database_id = "YOUR_D1_DATABASE_ID"
 
 [vars]
 ENVIRONMENT = "production"
+APP_URL = "https://loter-ia.pages.dev"
+FROM_EMAIL = "noreply@loter.ia"
 
-# Secrets (set via wrangler secret put):
-# OPENAI_API_KEY
-# JWT_SECRET
+# Cron Triggers — Phase 2a data ingestion + Phase 3 email notifications
+# 06:00 UTC: ingest new draw results
+# 08:00 UTC: send draw-results and prediction-hit emails (after 06:00 ingestion)
+# 22:00 UTC: ingest late LatAm draws
+[triggers]
+crons = ["0 6 * * *", "0 8 * * *", "0 22 * * *"]
+
+# Secrets (set via: wrangler secret put <SECRET_NAME>):
+# OPENAI_API_KEY          — OpenAI API key for AI predictions
+# JWT_SECRET              — secret for signing JWTs
+# LOTTERY_FEED_URL        — optional JSON feed base URL for automatic draw ingestion
+# STRIPE_SECRET_KEY       — Stripe secret key (sk_live_... or sk_test_...)
+# STRIPE_WEBHOOK_SECRET   — Stripe webhook signing secret (whsec_...)
+# RESEND_API_KEY          — Resend API key for transactional email
