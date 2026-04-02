@@ -5,6 +5,8 @@
       loter<span class="text-accent-500">.ia</span>
     </a>
     <div class="flex items-center gap-4">
+      <a routerLink="/dashboard" class="text-sm text-gray-600 hover:text-brand-700 hidden sm:inline">Dashboard</a>
+      <a routerLink="/pricing" class="text-sm text-gray-600 hover:text-brand-700 hidden sm:inline">Planes</a>
       <span class="text-sm text-gray-600 hidden sm:inline">{{ auth.user()?.name }}</span>
       <button (click)="auth.logout()" class="btn-secondary text-sm px-3 py-1.5">Salir</button>
     </div>

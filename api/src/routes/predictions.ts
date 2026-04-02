@@ -8,6 +8,7 @@
 
 import { Hono } from 'hono';
 import { requireAuth } from '../middleware/auth';
+import { planGate } from '../middleware/plan-gate';
 import { JwtPayload } from '../services/auth';
 import { generateStatisticalPrediction, DrawResult } from '../services/statistics';
 import { getOpenAIPrediction } from '../services/openai';
@@ -196,7 +197,7 @@ function mergeNumberSets(
 }
 
 // POST /api/predictions
-predictionsRouter.post('/', async (c) => {
+predictionsRouter.post('/', planGate, async (c) => {
   let body: PredictionRequest;
   try {
     body = await c.req.json<PredictionRequest>();
