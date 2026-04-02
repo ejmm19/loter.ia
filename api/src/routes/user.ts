@@ -168,6 +168,7 @@ userRouter.post('/favorites', async (c) => {
 userRouter.delete('/favorites/:id', async (c) => {
   const jwtUser = c.get('user');
   const id = Number(c.req.param('id'));
+  if (!Number.isInteger(id)) return c.json({ error: 'Invalid id' }, 400);
 
   const result = await c.env.DB
     .prepare('DELETE FROM user_favorites WHERE id = ? AND user_id = ?')
@@ -219,6 +220,7 @@ userRouter.put('/notifications/:lotteryId', async (c) => {
   }
 
   const lotteryId = Number(c.req.param('lotteryId'));
+  if (!Number.isInteger(lotteryId)) return c.json({ error: 'Invalid lotteryId' }, 400);
   let body: { notifyResults?: boolean; notifyPredictionHit?: boolean };
   try {
     body = await c.req.json();
