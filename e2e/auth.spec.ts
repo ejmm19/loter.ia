@@ -5,7 +5,7 @@
  * Precondition: app running at BASE_URL (default http://localhost:4200)
  * and API running at API_URL (default http://localhost:8787)
  *
- * All tests are skipped until Phase 1 (EJM-26) UI is complete.
+ * After login, the app redirects to /predictions by default.
  */
 
 import { test, expect } from '@playwright/test';
@@ -17,27 +17,29 @@ const testUser = {
 };
 
 test.describe('Auth flow', () => {
-  test.skip('Register — new user can create an account', async ({ page }) => {
+  test('Register — new user can create an account', async ({ page }) => {
     await page.goto('/register');
     await page.fill('[data-testid="name-input"]', testUser.name);
     await page.fill('[data-testid="email-input"]', testUser.email);
     await page.fill('[data-testid="password-input"]', testUser.password);
     await page.click('[data-testid="register-submit"]');
 
-    await expect(page).toHaveURL('/dashboard');
-    await expect(page.locator('[data-testid="user-greeting"]')).toContainText(testUser.name);
+    // Login redirects to /predictions by default (no ?next= param)
+    await expect(page).toHaveURL('/predictions');
+    await expect(page.locator('[data-testid="logout-button"]')).toBeVisible();
   });
 
-  test.skip('Login — registered user can sign in', async ({ page }) => {
+  test('Login — registered user can sign in', async ({ page }) => {
     await page.goto('/login');
     await page.fill('[data-testid="email-input"]', testUser.email);
     await page.fill('[data-testid="password-input"]', testUser.password);
     await page.click('[data-testid="login-submit"]');
 
-    await expect(page).toHaveURL('/dashboard');
+    // Default post-login redirect is /predictions
+    await expect(page).toHaveURL('/predictions');
   });
 
-  test.skip('Login — shows error for wrong password', async ({ page }) => {
+  test('Login — shows error for wrong password', async ({ page }) => {
     await page.goto('/login');
     await page.fill('[data-testid="email-input"]', testUser.email);
     await page.fill('[data-testid="password-input"]', 'WrongPassword!');
@@ -47,25 +49,26 @@ test.describe('Auth flow', () => {
     await expect(page).toHaveURL('/login');
   });
 
-  test.skip('Protected routes redirect to login when unauthenticated', async ({ page }) => {
+  test('Protected routes redirect to login when unauthenticated', async ({ page }) => {
     await page.goto('/dashboard');
-    await expect(page).toHaveURL('/login');
+    // Auth guard appends ?next=/dashboard, so check via regex
+    await expect(page).toHaveURL(/\/login/);
   });
 
-  test.skip('Logout — user is redirected to home', async ({ page }) => {
-    // Login first
+  test('Logout — user is redirected to home', async ({ page }) => {
+    // Login first (lands on /predictions)
     await page.goto('/login');
     await page.fill('[data-testid="email-input"]', testUser.email);
     await page.fill('[data-testid="password-input"]', testUser.password);
     await page.click('[data-testid="login-submit"]');
-    await expect(page).toHaveURL('/dashboard');
+    await expect(page).toHaveURL('/predictions');
 
-    // Logout
+    // Logout button is on the predictions page nav
     await page.click('[data-testid="logout-button"]');
     await expect(page).toHaveURL('/');
 
-    // Verify token is gone — try to revisit dashboard
+    // Verify token is gone — try to revisit a protected route
     await page.goto('/dashboard');
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL(/\/login/);
   });
 });
