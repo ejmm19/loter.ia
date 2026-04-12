@@ -1,4 +1,3 @@
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:8787/api',
+  apiUrl: 'https://loter-ia-api.ejmm10-19.workers.dev/api',
 };

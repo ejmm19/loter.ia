@@ -4,6 +4,16 @@ module.exports = {
     "./src/**/*.{html,ts}",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '1rem',
+      screens: {
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1140px',
+      },
+    },
     extend: {
       colors: {
         brand: {
@@ -25,11 +35,16 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Roboto', 'system-ui', 'sans-serif'],
+        heading: ['Raleway', 'sans-serif'],
       }
     },
   },
   plugins: [
     require('@tailwindcss/forms'),
+    require('daisyui'),
   ],
+  daisyui: {
+    themes: ["light"],
+  },
 }
