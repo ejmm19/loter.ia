@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "hono": "^4.6.0",
-    "openai": "^4.67.0"
+    "openai": "^6.34.0"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.14.1",
