@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, HostListener, ElementRef } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LotteryService, Lottery, Draw, CheckResult } from '../services/lottery.service';
+import { LotteryService, Lottery, Draw, CheckResult, CheckMatch } from '../services/lottery.service';
 
 @Component({
   selector: 'app-checker',
@@ -119,26 +119,57 @@ import { LotteryService, Lottery, Draw, CheckResult } from '../services/lottery.
           class="relative bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center animate-popIn"
           (click)="$event.stopPropagation()">
 
-          @if (checkResult?.match && matchedDraw) {
+          @if (checkResult?.match && checkResult!.results.length) {
             <!-- Ganador -->
             <div class="mb-4">
-              <div class="w-24 h-24 mx-auto bg-emerald-100 rounded-full flex items-center justify-center animate-bounceIn">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <div class="w-24 h-24 mx-auto bg-emerald-100 rounded-full flex items-center justify-center animate-bounceIn"
+                [class.bg-amber-100]="!hasMayor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-emerald-500" [class.text-amber-500]="!hasMayor" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
-            <h3 class="font-heading font-bold text-2xl text-emerald-700 mb-2">¡Felicidades!</h3>
-            <p class="text-gray-600 mb-1">Tu número coincide con un sorteo</p>
-            <div class="my-4 py-3 px-4 bg-emerald-50 rounded-xl">
-              <p class="text-emerald-800 font-bold text-3xl mb-1" style="font-family: 'Fredoka', sans-serif;">
-                {{ matchedDraw.number }}
-              </p>
-              <p class="text-emerald-600 text-sm">
-                Serie <span class="font-bold" style="font-family: 'Fredoka', sans-serif;">{{ matchedDraw.series }}</span>
-              </p>
+            <h3 class="font-heading font-bold text-2xl mb-2"
+              [class.text-emerald-700]="hasMayor"
+              [class.text-amber-600]="!hasMayor">
+              {{ hasMayor ? '¡Felicidades!' : '¡Ganaste un premio!' }}
+            </h3>
+            <p class="text-gray-600 mb-3">{{ checkResult!.message }}</p>
+
+            <!-- Lista de matches -->
+            <div class="space-y-2 my-4 max-h-60 overflow-y-auto">
+              @for (match of checkResult!.results; track match.id) {
+                <div class="py-3 px-4 rounded-xl text-left"
+                  [class.bg-emerald-50]="match.prize_type === 'mayor'"
+                  [class.bg-amber-50]="match.prize_type === 'seco'">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <span class="text-xs font-bold uppercase tracking-wider"
+                        [class.text-emerald-600]="match.prize_type === 'mayor'"
+                        [class.text-amber-600]="match.prize_type === 'seco'">
+                        {{ match.prize_name || (match.prize_type === 'mayor' ? 'Premio Mayor' : 'Seco') }}
+                      </span>
+                      <p class="text-gray-400 text-[10px] mt-0.5">{{ formatDate(match.draw_date) }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-bold text-lg" style="font-family: 'Fredoka', sans-serif;"
+                        [class.text-emerald-800]="match.prize_type === 'mayor'"
+                        [class.text-amber-700]="match.prize_type === 'seco'">
+                        {{ match.number }}
+                      </p>
+                      <p class="text-gray-500 text-xs">Serie {{ match.series }}</p>
+                    </div>
+                  </div>
+                  @if (match.prize_value) {
+                    <p class="text-xs mt-1 font-semibold"
+                      [class.text-emerald-600]="match.prize_type === 'mayor'"
+                      [class.text-amber-600]="match.prize_type === 'seco'">
+                      {{ formatPrize(match.prize_value) }}
+                    </p>
+                  }
+                </div>
+              }
             </div>
-            <p class="text-gray-400 text-xs">{{ formatDate(matchedDraw.draw_date) }}</p>
 
             <!-- Confetti particles -->
             <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
@@ -161,8 +192,8 @@ import { LotteryService, Lottery, Draw, CheckResult } from '../services/lottery.
               </div>
             </div>
             <h3 class="font-heading font-bold text-2xl text-red-500 mb-2">No esta vez</h3>
-            <p class="text-gray-500 mb-1">Tu número no coincide con este sorteo</p>
-            <p class="text-gray-400 text-sm mt-3">¡Sigue intentando, la suerte está de tu lado!</p>
+            <p class="text-gray-500 mb-1">Tu número no coincide con ningún sorteo reciente</p>
+            <p class="text-gray-400 text-sm mt-3">Se busca en premios mayores y secos. ¡Sigue intentando!</p>
           }
 
           <button
@@ -229,7 +260,7 @@ export class CheckerComponent implements OnInit {
   showModal = false;
   dropdownOpen = false;
 
-  get matchedDraw() { return this.checkResult?.draw ?? null; }
+  get hasMayor() { return this.checkResult?.results?.some(r => r.prize_type === 'mayor') ?? false; }
   get selectedLottery() { return this.lotteries.find(l => l.id === this.checkLotteryId) ?? null; }
 
   confettiColors = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -278,7 +309,7 @@ export class CheckerComponent implements OnInit {
         this.showModal = true;
       },
       error: () => {
-        this.checkResult = { match: false, message: 'Error al consultar. Intenta de nuevo.' };
+        this.checkResult = { match: false, message: 'Error al consultar. Intenta de nuevo.', results: [] };
         this.isChecking = false;
         this.showModal = true;
       },
@@ -296,6 +327,13 @@ export class CheckerComponent implements OnInit {
       duration: 1 + Math.random() * 2,
       delay: Math.random() * 0.5,
     }));
+  }
+
+  formatPrize(millions: number): string {
+    if (millions >= 1000) {
+      return `$${(millions / 1000).toLocaleString('es-CO', { maximumFractionDigits: 1 })} Mil Millones`;
+    }
+    return `$${millions.toLocaleString('es-CO')} Millones`;
   }
 
   formatDate(dateStr: string): string {

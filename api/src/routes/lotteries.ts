@@ -63,7 +63,7 @@ lotteriesRouter.get('/hot-numbers', async (c) => {
   return c.json({ hotDigits, totalDraws: results.length });
 });
 
-// Check if a number+series matches a winning draw
+// Check if a number+series matches a winning draw (mayor or seco)
 lotteriesRouter.get('/check', async (c) => {
   const lotteryId = Number(c.req.query('lotteryId'));
   const number = c.req.query('number');
@@ -74,10 +74,11 @@ lotteriesRouter.get('/check', async (c) => {
   }
 
   let query = `
-    SELECT d.id, d.lottery_id, l.name, l.slug, d.draw_date, d.number, d.series, d.sorteo, d.prize_type
+    SELECT d.id, d.lottery_id, l.name, l.slug, d.draw_date, d.number, d.series, d.sorteo,
+           d.prize_type, d.prize_name, d.prize_value
     FROM draws d
     JOIN lotteries l ON d.lottery_id = l.id
-    WHERE d.lottery_id = ? AND d.number = ? AND d.prize_type = 'mayor'
+    WHERE d.lottery_id = ? AND d.number = ?
   `;
   const bindings: (string | number)[] = [lotteryId, number];
 
@@ -86,18 +87,29 @@ lotteriesRouter.get('/check', async (c) => {
     bindings.push(series);
   }
 
-  query += ' ORDER BY d.draw_date DESC LIMIT 1';
+  // Order: mayor first, then by date desc, limit to recent matches
+  query += ' ORDER BY CASE d.prize_type WHEN \'mayor\' THEN 0 ELSE 1 END, d.draw_date DESC LIMIT 10';
 
-  const draw = await c.env.DB.prepare(query).bind(...bindings).first();
+  const { results } = await c.env.DB.prepare(query).bind(...bindings).all();
 
-  if (!draw) {
-    return c.json({ match: false, message: 'Tu número no coincide con ningún sorteo reciente.' });
+  if (!results.length) {
+    return c.json({ match: false, message: 'Tu número no coincide con ningún sorteo reciente.', results: [] });
+  }
+
+  const mayor = results.find((r: Record<string, unknown>) => r.prize_type === 'mayor');
+  const secos = results.filter((r: Record<string, unknown>) => r.prize_type === 'seco');
+
+  let message: string;
+  if (mayor) {
+    message = '¡Felicidades! Tu número coincide con un Premio Mayor.';
+  } else {
+    message = `¡Tu número coincide con ${secos.length} premio${secos.length > 1 ? 's' : ''} seco${secos.length > 1 ? 's' : ''}!`;
   }
 
   return c.json({
     match: true,
-    message: '¡Felicidades! Tu número coincide con un sorteo.',
-    draw,
+    message,
+    results,
   });
 });
 

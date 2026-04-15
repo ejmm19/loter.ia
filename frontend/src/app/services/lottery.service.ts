@@ -73,10 +73,24 @@ export interface DreamResult {
   symbols: string[];
 }
 
+export interface CheckMatch {
+  id: number;
+  lottery_id: number;
+  name: string;
+  slug: string;
+  draw_date: string;
+  number: string;
+  series: string;
+  sorteo: number | null;
+  prize_type: string;
+  prize_name: string | null;
+  prize_value: number | null;
+}
+
 export interface CheckResult {
   match: boolean;
   message: string;
-  draw?: Draw & { name: string; slug: string };
+  results: CheckMatch[];
 }
 
 @Injectable({ providedIn: 'root' })
