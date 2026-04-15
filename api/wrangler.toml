@@ -21,8 +21,8 @@ custom_domain = true
 
 # Cron Triggers — lottery data ingestion (Colombia)
 # Scrapes loteriasdehoy.co for premio mayor + secos.
-# Runs at 11:30 PM and 1:00 AM Colombia time (04:30 and 06:00 UTC)
-# to capture results after the draw (~10:30 PM COL).
+# 11:30 PM COL (04:30 UTC) — first attempt after draws (~10:30 PM COL)
+# 1:00 AM COL  (06:00 UTC) — second attempt + backfill yesterday's missing secos
 # Duplicates are safely skipped via INSERT OR IGNORE.
 [triggers]
 crons = ["30 4 * * *", "0 6 * * *"]
