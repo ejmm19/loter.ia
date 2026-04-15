@@ -11,6 +11,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.89.0",
     "hono": "^4.6.0",
     "openai": "^6.34.0"
   },
