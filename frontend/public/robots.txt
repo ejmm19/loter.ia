@@ -3,4 +3,5 @@ Allow: /
 Disallow: /dashboard
 Disallow: /predictions
 Disallow: /analysis
-Sitemap: https://loter-ia.pages.dev/sitemap.xml
+
+Sitemap: https://loteriasdehoy.pro/sitemap.xml
