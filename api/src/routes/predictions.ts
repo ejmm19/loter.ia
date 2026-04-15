@@ -8,28 +8,19 @@
 
 import { Hono } from 'hono';
 import { requireAuth, optionalAuth } from '../middleware/auth';
-import { planGate } from '../middleware/plan-gate';
 import { JwtPayload } from '../services/auth';
 import { generateStatisticalPrediction, DrawResult } from '../services/statistics';
-import { getOpenAIPrediction } from '../services/openai';
 
 interface PredictionRequest {
   lotteryId: number;
-  useAI?: boolean;
 }
 
-interface CombinedPrediction {
+interface PredictionResult {
   lotteryId: number;
   lotteryName: string;
   pickCount: number;
   maxNumber: number;
   statistical: Awaited<ReturnType<typeof generateStatisticalPrediction>>;
-  ai?: Awaited<ReturnType<typeof getOpenAIPrediction>>;
-  combined: {
-    suggestedNumbers: number[];
-    confidence: number;
-    explanation: string;
-  };
   disclaimer: string;
   generatedAt: string;
 }
@@ -117,87 +108,25 @@ async function savePredictionToHistory(
   db: D1Database,
   userId: string | null,
   lotteryId: number,
-  prediction: CombinedPrediction
+  prediction: PredictionResult
 ): Promise<void> {
   if (!userId) return;
   await db
     .prepare(`
-      INSERT INTO predictions (user_id, lottery_id, predicted_numbers, confidence_score, ai_reasoning, created_at)
-      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      INSERT INTO predictions (user_id, lottery_id, predicted_numbers, confidence_score, created_at)
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
     `)
     .bind(
       userId,
       lotteryId,
-      JSON.stringify(prediction.combined.suggestedNumbers),
-      prediction.combined.confidence,
-      prediction.ai?.reasoning ?? null
+      JSON.stringify(prediction.statistical.suggestedNumbers),
+      prediction.statistical.confidence,
     )
     .run();
 }
 
-function mergeNumberSets(
-  statistical: number[],
-  ai: number[] | undefined,
-  pickCount: number,
-  statConfidence: number,
-  aiConfidence: number
-): { numbers: number[]; confidence: number; explanation: string } {
-  if (!ai || ai.length === 0) {
-    return {
-      numbers: statistical.slice(0, pickCount),
-      confidence: statConfidence,
-      explanation: 'Basado en análisis de frecuencia ponderada y promedios móviles.',
-    };
-  }
-
-  const statSet = new Set(statistical);
-  const aiSet = new Set(ai);
-  const consensus: number[] = [];
-  const statOnly: number[] = [];
-  const aiOnly: number[] = [];
-
-  for (const n of statistical) {
-    if (aiSet.has(n)) consensus.push(n);
-    else statOnly.push(n);
-  }
-  for (const n of ai) {
-    if (!statSet.has(n)) aiOnly.push(n);
-  }
-
-  const merged: number[] = [...consensus];
-  const remaining = pickCount - merged.length;
-
-  if (remaining > 0) {
-    const primary = aiConfidence >= statConfidence ? aiOnly : statOnly;
-    const secondary = aiConfidence >= statConfidence ? statOnly : aiOnly;
-    merged.push(...primary.slice(0, remaining));
-    if (merged.length < pickCount) {
-      merged.push(...secondary.slice(0, pickCount - merged.length));
-    }
-  }
-
-  const combinedConfidence = Math.min(
-    Math.round((statConfidence + aiConfidence) / 2 + (consensus.length / pickCount) * 10),
-    95
-  );
-
-  const parts: string[] = [];
-  if (consensus.length > 0) {
-    parts.push(`${consensus.length} números coincidentes entre modelos estadísticos e IA.`);
-  }
-  if (aiOnly.length > 0) {
-    parts.push('La IA identificó candidatos adicionales por patrones.');
-  }
-
-  return {
-    numbers: merged.slice(0, pickCount).sort((a, b) => a - b),
-    confidence: combinedConfidence,
-    explanation: parts.join(' ') || 'Análisis combinado estadístico + IA.',
-  };
-}
-
 // POST /api/predictions
-predictionsRouter.post('/', optionalAuth, planGate, async (c) => {
+predictionsRouter.post('/', optionalAuth, async (c) => {
   let body: PredictionRequest;
   try {
     body = await c.req.json<PredictionRequest>();
@@ -205,7 +134,7 @@ predictionsRouter.post('/', optionalAuth, planGate, async (c) => {
     return c.json({ error: 'Cuerpo JSON inválido' }, 400);
   }
 
-  const { lotteryId, useAI = true } = body;
+  const { lotteryId } = body;
   if (!lotteryId || !Number.isInteger(lotteryId)) {
     return c.json({ error: 'lotteryId es requerido y debe ser un entero' }, 400);
   }
@@ -224,48 +153,14 @@ predictionsRouter.post('/', optionalAuth, planGate, async (c) => {
 
   const today = new Date().toISOString().split('T')[0];
 
-  // Statistical prediction
   const statistical = generateStatisticalPrediction(draws, lottery.pickCount, lottery.maxNumber, today);
 
-  // AI prediction (cached, cost-controlled)
-  let aiPrediction;
-  if (useAI && c.env.OPENAI_API_KEY) {
-    try {
-      aiPrediction = await getOpenAIPrediction(
-        c.env.OPENAI_API_KEY,
-        c.env.DB,
-        lottery.id,
-        lottery.name,
-        draws,
-        lottery.pickCount,
-        lottery.maxNumber,
-        userId
-      );
-    } catch (err) {
-      console.error('Predicción OpenAI falló, usando solo modelo estadístico:', err);
-    }
-  }
-
-  const merged = mergeNumberSets(
-    statistical.suggestedNumbers,
-    aiPrediction?.suggestedNumbers,
-    lottery.pickCount,
-    statistical.confidence,
-    aiPrediction?.confidence ?? 0
-  );
-
-  const result: CombinedPrediction = {
+  const result: PredictionResult = {
     lotteryId: lottery.id,
     lotteryName: lottery.name,
     pickCount: lottery.pickCount,
     maxNumber: lottery.maxNumber,
     statistical,
-    ai: aiPrediction,
-    combined: {
-      suggestedNumbers: merged.numbers,
-      confidence: merged.confidence,
-      explanation: merged.explanation,
-    },
     disclaimer:
       'Este análisis es puramente estadístico y educativo. Las loterías son juegos de azar y ningún análisis garantiza resultados. Juega responsablemente.',
     generatedAt: new Date().toISOString(),
@@ -286,25 +181,24 @@ predictionsRouter.get('/', requireAuth, async (c) => {
   const rows = lotteryIdParam
     ? await c.env.DB
         .prepare(
-          `SELECT id, lottery_id, predicted_numbers, confidence_score, ai_reasoning, created_at
+          `SELECT id, lottery_id, predicted_numbers, confidence_score, created_at
            FROM predictions WHERE user_id = ? AND lottery_id = ? ORDER BY created_at DESC LIMIT ?`
         )
         .bind(jwtUser.sub, Number(lotteryIdParam), limit)
-        .all<{ id: number; lottery_id: number; predicted_numbers: string; confidence_score: number; ai_reasoning: string | null; created_at: string }>()
+        .all<{ id: number; lottery_id: number; predicted_numbers: string; confidence_score: number; created_at: string }>()
     : await c.env.DB
         .prepare(
-          `SELECT id, lottery_id, predicted_numbers, confidence_score, ai_reasoning, created_at
+          `SELECT id, lottery_id, predicted_numbers, confidence_score, created_at
            FROM predictions WHERE user_id = ? ORDER BY created_at DESC LIMIT ?`
         )
         .bind(jwtUser.sub, limit)
-        .all<{ id: number; lottery_id: number; predicted_numbers: string; confidence_score: number; ai_reasoning: string | null; created_at: string }>();
+        .all<{ id: number; lottery_id: number; predicted_numbers: string; confidence_score: number; created_at: string }>();
 
   const predictions = (rows.results ?? []).map((r) => ({
     id: r.id,
     lotteryId: r.lottery_id,
     numbers: JSON.parse(r.predicted_numbers) as number[],
     confidenceScore: r.confidence_score,
-    aiReasoning: r.ai_reasoning,
     createdAt: r.created_at,
   }));
 
